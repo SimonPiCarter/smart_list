@@ -117,3 +117,33 @@ TEST(simple, copy)
 
     display();
 }
+
+TEST(simple, recycle)
+{
+    smart_list<int> test_l;
+
+    smart_list_handle<int> first_l = test_l.new_instance(17);
+    smart_list_handle<int> second_l = test_l.new_instance(25);
+
+    EXPECT_EQ(17, first_l.get());
+    EXPECT_EQ(25, second_l.get());
+    EXPECT_EQ(0u, first_l.handle());
+    EXPECT_EQ(1u, second_l.handle());
+    EXPECT_TRUE(first_l.is_valid());
+    EXPECT_TRUE(second_l.is_valid());
+
+	test_l.free_instance(second_l);
+    EXPECT_FALSE(second_l.is_valid());
+
+	smart_list_handle<int> third_l = test_l.recycle_instance();
+    EXPECT_FALSE(second_l.is_valid());
+    EXPECT_TRUE(third_l.is_valid());
+
+    EXPECT_EQ(1u, third_l.handle());
+    EXPECT_EQ(1u, third_l.revision());
+    EXPECT_EQ(25, third_l.get());
+
+	third_l.get() = 12;
+    EXPECT_EQ(12, third_l.get());
+    EXPECT_EQ(12, test_l.get(1));
+}
