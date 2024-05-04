@@ -1,6 +1,7 @@
 #ifndef __smart_list__
 #define __smart_list__
 
+#include <functional>
 #include <vector>
 #include <cassert>
 #include <list>

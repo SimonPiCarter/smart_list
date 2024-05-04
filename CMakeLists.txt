@@ -5,8 +5,10 @@ project(smart_list VERSION 1.0.0)
 
 # load conan
 
-include(${PROJECT_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+if (EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+	include (${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+	conan_basic_setup (#[[TARGETS]])
+endif ()
 
 #
 # LIB
