@@ -51,8 +51,18 @@ struct smart_list
     bool is_valid(smart_list_handle<class_t> const &idx_p)
     {
         assert(idx_p.list() == this);
-        return idx_p.revision() == data[idx_p.handle()].revision
+        return idx_p.handle() < data.size()
+			&& idx_p.revision() == data[idx_p.handle()].revision
             && data[idx_p.handle()].enabled;
+    }
+
+    /// @brief check if the handle is valid in the list
+    /// @param idx_p the handle to be checked
+    /// @return true if the handle is valid (enabled and revision matches)
+    bool is_valid(size_t idx_p)
+    {
+        return idx_p < data.size()
+            && data[idx_p].enabled;
     }
 
     /// @brief get the content of the handle
@@ -64,6 +74,20 @@ struct smart_list
     /// @return the content of the handle
     class_t const &get(smart_list_handle<class_t> const &idx_p) const { assert(idx_p.list() == this); return data[idx_p.handle()].data; }
 
+    /// @brief get the content of the handle
+    /// @param idx_p the handle to fetch
+    /// @return the content of the handle
+	class_t &get(size_t idx_p) { return data[idx_p].data; }
+    /// @brief get the content of the handle
+    /// @param idx_p the handle to fetch
+    /// @return the content of the handle
+	class_t const &get(size_t idx_p) const { return data[idx_p].data; }
+
+	/// @brief get the handle corresponding to the unsafe index
+    /// @param idx_p the handle to fetch
+	/// @return the handle
+	smart_list_handle<class_t> get_handle(size_t idx_p) { return return data[idx_p]; }
+
     /// @brief create a new handle corresponding to the value
     /// @param val_p the value to be added
     /// @return the new handle created
@@ -72,6 +96,12 @@ struct smart_list
     /// @param val_p the value to be added
     /// @return the new handle created
     smart_list_handle<class_t> new_instance(class_t &&val_p);
+
+    /// @brief get a new instance that MAY be an instance already set up
+	/// @note no change is done to the instance in place if any is used
+	/// @remark check handle revision() > 0 if you want know if the instance is fresh new or not
+    /// @return the handle of the recycle instance
+    smart_list_handle<class_t> recycle_instance();
 
     /// @brief free the handle
     /// @param idx_p the handle to be freed
@@ -90,6 +120,18 @@ struct smart_list
     {
         for(auto &&w : data) { if(w.enabled) { func_p(w.data); } }
     }
+    void for_each(std::function<void(class_t &, size_t)> const &func_p)
+    {
+		size_t idx_l = 0;
+        for(auto &&w : data) { if(w.enabled) { func_p(w.data, idx_l); } ++idx_l; }
+    }
+    void for_each_const(std::function<void(class_t const &, size_t)> const &func_p) const
+    {
+		size_t idx_l = 0;
+        for(auto &&w : data) { if(w.enabled) { func_p(w.data, idx_l); } ++idx_l; }
+    }
+
+	size_t size() const { return data.size(); }
 
 private:
 
@@ -159,5 +201,24 @@ smart_list_handle<class_t> smart_list<class_t>::new_instance(class_t &&val_p)
     return smart_list_handle<class_t>(idx_l, data[idx_l].revision, this);
 }
 
+template<typename class_t>
+smart_list_handle<class_t> smart_list<class_t>::recycle_instance()
+{
+    if(indexes.size() == 0)
+    {
+        smart_list_handle<class_t> handle_l(data.size(), 0, this);
+        data.emplace_back(class_t());
+        return handle_l;
+    }
+    // get free index and remove it from free list
+    size_t idx_l = indexes.front();
+    indexes.pop_front();
+    // assert check, we whould only have disabled blob marked as free
+    assert(!data[idx_l].enabled);
+    data[idx_l].enabled = true;
+    ++data[idx_l].revision;
+
+    return smart_list_handle<class_t>(idx_l, data[idx_l].revision, this);
+}
 
 #endif
