@@ -112,6 +112,14 @@ struct smart_list
         data[idx_p.handle()].enabled = false;
     }
 
+    /// @brief free the handle
+    /// @param idx_p the handle to be freed
+    void free_instance(size_t idx_p)
+    {
+        indexes.push_back(idx_p);
+        data[idx_p].enabled = false;
+    }
+
     void for_each(std::function<void(class_t &)> const &func_p)
     {
         for(auto &&w : data) { if(w.enabled) { func_p(w.data); } }
