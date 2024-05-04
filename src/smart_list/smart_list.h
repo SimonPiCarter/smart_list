@@ -86,7 +86,7 @@ struct smart_list
 	/// @brief get the handle corresponding to the unsafe index
     /// @param idx_p the handle to fetch
 	/// @return the handle
-	smart_list_handle<class_t> get_handle(size_t idx_p) { return return data[idx_p]; }
+	smart_list_handle<class_t> get_handle(size_t idx_p) { return {idx_p, data[idx_p].revision, this} ; }
 
     /// @brief create a new handle corresponding to the value
     /// @param val_p the value to be added
@@ -176,7 +176,7 @@ template<typename class_t>
 smart_list_handle<class_t> smart_list<class_t>::new_instance(class_t const &val_p)
 {
     class_t new_val_l(val_p);
-    new_instance(std::move(new_val_l));
+    return new_instance(std::move(new_val_l));
 }
 
 template<typename class_t>
