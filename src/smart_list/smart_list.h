@@ -38,7 +38,7 @@ struct smart_list_handle
 
 private:
     size_t _handle = 0;
-    unsigned char _revision = 0;
+    unsigned char _revision = 255;
     smart_list<class_t> *_list = nullptr;
 };
 
@@ -225,6 +225,10 @@ smart_list_handle<class_t> smart_list<class_t>::recycle_instance()
     assert(!data[idx_l].enabled);
     data[idx_l].enabled = true;
     ++data[idx_l].revision;
+    if(data[idx_l].revision == 255)
+    {
+        data[idx_l].revision = 0;
+    }
 
     return smart_list_handle<class_t>(idx_l, data[idx_l].revision, this);
 }
