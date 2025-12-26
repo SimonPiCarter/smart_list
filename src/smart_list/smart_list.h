@@ -78,10 +78,12 @@ struct smart_list
     /// @param idx_p the handle to fetch
     /// @return the content of the handle
 	class_t &get(size_t idx_p) { return data[idx_p].data; }
+    class_t &operator[](size_t idx_p) { return data[idx_p].data; }
     /// @brief get the content of the handle
     /// @param idx_p the handle to fetch
     /// @return the content of the handle
 	class_t const &get(size_t idx_p) const { return data[idx_p].data; }
+    class_t const &operator[](size_t idx_p) const { return data[idx_p].data; }
 
 	/// @brief get the handle corresponding to the unsafe index
     /// @param idx_p the handle to fetch
@@ -193,7 +195,7 @@ smart_list_handle<class_t> smart_list<class_t>::new_instance(class_t &&val_p)
     if(indexes.size() == 0)
     {
         smart_list_handle<class_t> handle_l(data.size(), 0, this);
-        data.emplace_back(val_p);
+        data.emplace_back(std::move(val_p));
         return handle_l;
     }
     // get free index and remove it from free list
@@ -202,7 +204,7 @@ smart_list_handle<class_t> smart_list<class_t>::new_instance(class_t &&val_p)
     // assert check, we whould only have disabled blob marked as free
     assert(!data[idx_l].enabled);
     // store value and re enable data
-    std::swap(val_p, data[idx_l].data);
+    data[idx_l].data = std::move(val_p);
     data[idx_l].enabled = true;
     ++data[idx_l].revision;
 
